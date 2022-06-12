@@ -27,7 +27,7 @@ const can_speak = (e: MouseEvent) => {
 const get_voices = () => {
   const voices = window.speechSynthesis.getVoices()
   if (!voice.value) voice.value = voices[0]
-  return voices.filter(v => v.default)
+  return voices
 }
 const get_e = (e: MouseEvent) => {
 
