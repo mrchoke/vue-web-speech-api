@@ -7,14 +7,14 @@ const mode_active = ref(false)
 const old_decotation = ref('none')
 const old_cursor = ref('default')
 
-const synth = ref(window.speechSynthesis)
+const synth = ref<SpeechSynthesis>(window.speechSynthesis)
 const userInput = ref('')
 const pitch = ref(1)
 const rate = ref(1)
 const validation = ref(false)
 const voice = ref()
 const sInstance = ref(new SpeechSynthesisUtterance())
-
+const is_speaking = ref(false)
 const can_speak = (e: MouseEvent) => {
   const el = e.target as HTMLElement
 
@@ -29,9 +29,8 @@ const get_voices = () => {
   if (!voice.value) voice.value = voices[0]
   return voices
 }
+
 const get_e = (e: MouseEvent) => {
-
-
 
   const el = e.target as HTMLElement
 
@@ -58,9 +57,17 @@ const load_voice = () => {
   sInstance.value.rate = rate.value
 
   sInstance.value.onend = () => {
+    is_speaking.value = false
     console.log('SpeechSynthesisUtterance.onend')
   }
+
+  sInstance.value.onstart = () => {
+    is_speaking.value = true
+    console.log('SpeechSynthesisUtterance.onstart')
+  }
+
   sInstance.value.onerror = () => {
+    is_speaking.value = false
     console.error('SpeechSynthesisUtterance.onerror')
   }
   if (mode_active.value) {
@@ -94,8 +101,7 @@ const mout = (e: MouseEvent) => {
 
 const speak = () => {
   if (synth.value.speaking) {
-    console.error('speechSynthesis.speaking')
-    return
+    synth.value.cancel()
   }
   if (userInput.value !== '') {
     validation.value = false
@@ -105,6 +111,7 @@ const speak = () => {
   } else {
     validation.value = true
   }
+
 }
 
 
@@ -122,10 +129,12 @@ watch(voice, (v) => {
 </script>
 
 <template >
+  <h1>Web Speech API Demo</h1>
   <button @click="mode_active = !mode_active">{{ mode_active ? 'Enable' : 'Disable' }}</button>
+  <button @click="synth.cancel()" v-if="is_speaking">Stop</button>
   <select v-model="voice" data-cantspeak="true" v-if="mode_active">
     <option v-for=" v,i in get_voices()" :value="v" data-cantspeak="true" :key="i">{{ v.lang }} - {{
-      v.name }}
+    v.name }}
     </option>
   </select>
 
@@ -135,6 +144,13 @@ watch(voice, (v) => {
     <HelloWorld msg="Hello Vue 3 + TypeScript + Vite" />
     <h3>สวัสดีจ้า</h3>
     <h3 data-cantspeak="true">Ha Ha this text can not say!!</h3>
+    <hr />
+    <div style="text-align: left; margin: 0 auto; width: 50%;">
+      <p>
+        Windows: Edge or Chrome <br />
+        macOS: Safari <br />
+      </p>
+    </div>
   </div>
 
 </template>
